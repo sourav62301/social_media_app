@@ -8,13 +8,14 @@ exports.createPost = async (req, res) => {
         public_id: "req.body.public_id",
         url: "req.body.url",
       },
-      owner: req.body.user._id,
+      // owner: req.body.user._id,
+      owner: req.user._id,
     };
     const newPost = await Post.create(newPostData);
     res.status(201).json({
       success: true,
       post: newPost,
-      message: "Post ceated successfully",
+      message: "Post created successfully",
     });
   } catch (error) {
     res.status(500).json({
