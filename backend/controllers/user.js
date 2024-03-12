@@ -1,3 +1,4 @@
+const { now } = require("mongoose");
 const User = require("../models/User");
 
 exports.register = async (req, res) => {
@@ -77,6 +78,25 @@ exports.login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    // const user = await User.findById(req.params.id);
+
+    res
+      .status(200)
+      .cookie("token", null, { expires: new Date(Date.now()), httpOnly: true })
+      .json({
+        success: true,
+        message: "Logged out",
+      });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
     });
   }
 };
