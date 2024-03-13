@@ -212,6 +212,9 @@ exports.deleteProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     const posts = user.posts;
+    const userId = user._id;
+    const followers = user.followers;
+    const following = user.following;
 
     await user.deleteOne();
 
@@ -227,9 +230,78 @@ exports.deleteProfile = async (req, res) => {
       await post.deleteOne();
     }
 
+    // Removing user from following of followers
+    for (let i = 0; i < followers.length; i++) {
+      const follower = await User.findById(followers[i]);
+      const index = follower.following.indexOf(userId);
+      follower.following.splice(index, 1);
+      await follower.save();
+    }
+
+    // Removing user from followers of following
+    for (let i = 0; i < following.length; i++) {
+      const follows = await User.findById(following[i]);
+      const index = follows.followers.indexOf(userId);
+      follows.followers.splice(index, 1);
+      await follows.save();
+    }
+
     res.status(200).json({
       success: true,
       message: "User deleted",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.myProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("posts");
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate("posts");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.status(200).json({
+      success: true,
+      users,
     });
   } catch (error) {
     res.status(500).json({
